@@ -1,0 +1,59 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import AmazonLogo from "../../components/AmazonLogo.astro";
+import BookScore from "../../components/BookScore.astro";
+import BuyButton from "../../components/BuyButton.astro";
+
+// Accede a la variable de entorno correctamente
+
+export async function getStaticPaths() {
+    const books = await getCollection("books");
+    return books.map((book) => ({
+        params: {
+            id: book.slug,
+        },
+        props: {
+            book,
+            showBuyButton: import.meta.env.SHOW_BUY_BUTTON === "true",
+        },
+    }));
+}
+
+const { book, showBuyButton } = Astro.props;
+
+const { data, slug } = book;
+const { title, author, img, readtime, description, buy } = data;
+
+const { Content } = await render(book);
+export const prerender = true;
+---
+
+<Layout title={`${title} - Dev Books`}>
+    <div class="flex gap-12">
+        <aside class="flex flex-col item-center gap-4">
+            <a href="/" class="opacity-70 hover:underline"> ← Volver atrás</a>
+            <img
+                transition:name={`img-${slug}`}
+                class="rounded w-72 h-auto"
+                src={`/${img}`}
+                alt={title}
+            />
+            <BookScore server:defer id={slug}>
+                <span slot="fallback" class="text-xs opacity-70"
+                    >Cargando Puntuación...</span
+                >
+            </BookScore>
+
+            <!-- Mostrar el enlace solo si la variable showBuyButton es verdadera -->
+            {showBuyButton && <BuyButton server:defer buy={buy} />}
+        </aside>
+        <main class="max-w-3xl">
+            <h2 class="text-4xl font-bold mb-4">{title}</h2>
+            <div class="prose prose-invert">
+                <Content />
+            </div>
+        </main>
+    </div>
+</Layout>
