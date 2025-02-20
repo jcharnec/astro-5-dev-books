@@ -1,8 +1,12 @@
 // @ts-check
 import { defineConfig, envField } from "astro/config";
+import node from "@astrojs/node";
+
+import vercel from "@astrojs/vercel";
 
 export default defineConfig({
     output: "server",
+    adapter: vercel(),
     integrations: [],
     env: {
         schema: {
